@@ -6,6 +6,7 @@ DOCKER_HOST_ADDRESS ?= 0.0.0.0
 DOCKER_NETWORK ?= esusu-net
 
 PING_STATUS_OK ?= 200
+GO_VERSION=1.22.1
 
 # Pass args to the meme executable
 MEME_ARGS ?=
@@ -18,7 +19,7 @@ tidy:
 	go mod tidy
 
 build-light: 
-	go build -ldflags="-X" -o meme
+	go build -ldflags="-X 'main.Version=dev'" -o meme ./cmd/api
 
 meme: ./cmd/api format build-light
 
@@ -32,12 +33,15 @@ run: meme ## Build as per tag and run the binary
 
 # For faster repeated dev builds when you know the api hasn't changed
 fast-run: ## Build the dev version and run the binary
-	go build -ldflags="-X 'main.GWDeployVersion=dev'" -o meme $(GO_BUILD_FLAGS)
-	GWDEPLOY_DB_NUM_OF_RETRIES=1 ./meme $(MEME_ARGS)
+	go build -ldflags="-X 'main.Version=dev'" -o meme ./cmd/api $(GO_BUILD_FLAGS)
+	./meme $(MEME_ARGS)
+
+build-docker:
+	docker build . --build-arg GO_VERSION=$(GO_VERSION)
 
 # The docker run arguments used here work with postgres and kafka running in all-in-1
 run-docker: ## Run the latest docker image
-	- docker rm -f meme 2> /dev/null ||	
+	- docker rm -f meme 2> /dev/null
 	docker run --name meme -dt -p $(DOCKER_HOST_ADDRESS):$(DOCKER_HOST_PORT):$(DOCKER_pkg_PORT) --network=$(DOCKER_NETWORK) -e MEME_DB_PG_HOST=postgres -e TOKEN_SIGNING_KEY="$$TOKEN_SIGNING_KEY" $(MEME_ARGS)
 
 # ------------------ end of Run --------------------------
@@ -99,8 +103,9 @@ infra_up: ## Start and stop postgres and kafka
 	docker ps
 
 
-infra_down: ## Set DC_ARG=-v to remove the persistent volumes
-	COMPOSE_PROFILES=complete docker-compose down $(DC_ARG)
+infra_down: 
+	COMPOSE_PROFILES=complete docker-compose down -v
+	docker container prune -f
 	docker volume prune -f
 
 show_coverage: ## Show total test coverage

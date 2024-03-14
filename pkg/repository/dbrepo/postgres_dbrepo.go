@@ -34,13 +34,12 @@ func (m *PostgresDBRepo) AllMemes() ([]*models.Meme, error) {
 
 	query := fmt.Sprintf(`
 		select
-			id, title, release_date, runtime,
-			mpaa_rating, description, coalesce(image, ''),
+			id, lat, lon, coalesce(image, ''),
 			created_at, updated_at
 		from
 			memes %s
 		order by
-			title
+			lat
 	`, where)
 
 	rows, err := m.DB.QueryContext(ctx, query)
@@ -55,11 +54,8 @@ func (m *PostgresDBRepo) AllMemes() ([]*models.Meme, error) {
 		var meme models.Meme
 		err := rows.Scan(
 			&meme.ID,
-			&meme.Title,
-			&meme.ReleaseDate,
-			&meme.RunTime,
-			&meme.MPAARating,
-			&meme.Description,
+			&meme.Lan,
+			&meme.Lon,
 			&meme.Image,
 			&meme.CreatedAt,
 			&meme.UpdatedAt,
@@ -79,8 +75,7 @@ func (m *PostgresDBRepo) OneMeme(id int) (*models.Meme, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, title, release_date, runtime, mpaa_rating, 
-		description, coalesce(image, ''), created_at, updated_at
+	query := `select id, lat, lon, coalesce(image, ''), created_at, updated_at
 		from memes where id = $1`
 
 	row := m.DB.QueryRowContext(ctx, query, id)
@@ -89,11 +84,8 @@ func (m *PostgresDBRepo) OneMeme(id int) (*models.Meme, error) {
 
 	err := row.Scan(
 		&meme.ID,
-		&meme.Title,
-		&meme.ReleaseDate,
-		&meme.RunTime,
-		&meme.MPAARating,
-		&meme.Description,
+		&meme.Lan,
+		&meme.Lon,
 		&meme.Image,
 		&meme.CreatedAt,
 		&meme.UpdatedAt,
@@ -102,35 +94,6 @@ func (m *PostgresDBRepo) OneMeme(id int) (*models.Meme, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// get categories, if any
-	query = `select g.id, g.genre from memes_genres mg
-		left join categories g on (mg.genre_id = g.id)
-		where mg.meme_id = $1
-		order by g.genre`
-
-	rows, err := m.DB.QueryContext(ctx, query, id)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var categories []*models.Genre
-	for rows.Next() {
-		var g models.Genre
-		err := rows.Scan(
-			&g.ID,
-			&g.Genre,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		categories = append(categories, &g)
-	}
-
-	meme.Genres = categories
-
 	return &meme, err
 }
 
@@ -195,18 +158,14 @@ func (m *PostgresDBRepo) InsertMeme(meme models.Meme) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `insert into memes (title, description, release_date, runtime,
-			mpaa_rating, created_at, updated_at, image)
-			values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`
+	stmt := `insert into memes (lat, lon, image)
+			values ($1, $2, $3) returning id`
 
 	var newID int
 
 	err := m.DB.QueryRowContext(ctx, stmt,
-		meme.Title,
-		meme.Description,
-		meme.ReleaseDate,
-		meme.RunTime,
-		meme.MPAARating,
+		meme.Lan,
+		meme.Lon,
 		meme.CreatedAt,
 		meme.UpdatedAt,
 		meme.Image,
@@ -224,16 +183,12 @@ func (m *PostgresDBRepo) UpdateMeme(meme models.Meme) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `update memes set title = $1, description = $2, release_date = $3,
-				runtime = $4, mpaa_rating = $5,
-				updated_at = $6, image = $7 where id = $8`
+	stmt := `update memes set lat = $1, lon = $2, 
+				updated_at = $3, image = $4 where id = $5`
 
 	_, err := m.DB.ExecContext(ctx, stmt,
-		meme.Title,
-		meme.Description,
-		meme.ReleaseDate,
-		meme.RunTime,
-		meme.MPAARating,
+		meme.Lan,
+		meme.Lon,
 		meme.UpdatedAt,
 		meme.Image,
 		meme.ID,

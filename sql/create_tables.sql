@@ -20,22 +20,21 @@ SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
+
 --
 -- Name: memes; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.memes (
-    id integer NOT NULL,
-    title character varying(512),
-    release_date date,
-    runtime integer,
-    mpaa_rating character varying(10),
-    description text,
+    id integer NOT NULL,   
+    lat character varying(512),
+    lon character varying(512),
     image character varying(255),
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
 
+ALTER TABLE public.memes OWNER TO esusu;
 --
 -- Name: memes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
@@ -64,6 +63,7 @@ CREATE TABLE public.users (
     updated_at timestamp without time zone
 );
 
+ALTER TABLE public.users OWNER TO esusu;
 
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
@@ -82,10 +82,10 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 -- Data for Name: memes; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.memes (id, title, release_date, runtime, mpaa_rating, description, image, created_at, updated_at) FROM stdin;
-1	Highlander	1986-03-07	116	R	He fought his first battle on the Scottish Highlands in 1536. He will fight his greatest battle on the streets of New York City in 1986. His name is Connor MacLeod. He is immortal.	/8Z8dptJEypuLoOQro1WugD855YE.jpg	2022-09-23 00:00:00	2022-09-23 00:00:00
-2	Raiders of the Lost Ark	1981-06-12	115	PG-13	Archaeology professor Indiana Jones ventures to seize a biblical artefact known as the Ark of the Covenant. While doing so, he puts up a fight against Renee and a troop of Nazis.	/ceG9VzoRAVGwivFU403Wc3AHRys.jpg	2022-09-23 00:00:00	2022-09-23 00:00:00
-3	The Godfather	1972-03-24	175	18A	The aging patriarch of an organized crime dynasty in postwar New York City transfers control of his clandestine empire to his reluctant youngest son.	/3bhkrj58Vtu7enYsRolD1fZdja1.jpg	2022-09-23 00:00:00	2022-09-23 00:00:00
+COPY public.memes (id, lat, lon, image, created_at, updated_at) FROM stdin;
+1	40.730610   -73.935242    /8Z8dptJEypuLoOQro1WugD855YE.jpg	2024-03-13 00:00:00	2024-03-13 00:00:00
+2	40.730610   -73.935242    /ceG9VzoRAVGwivFU403Wc3AHRys.jpg	2024-03-13 00:00:00	2024-03-13 00:00:00
+3	40.730610   -73.935242    /3bhkrj58Vtu7enYsRolD1fZdja1.jpg	2024-03-13 00:00:00	2024-03-13 00:00:00
 \.
 
 --

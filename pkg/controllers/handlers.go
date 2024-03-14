@@ -130,7 +130,11 @@ func (app *Application) refreshToken(w http.ResponseWriter, r *http.Request) {
 
 			tokenPairs, err := app.Auth.GenerateTokenPair(&u)
 			if err != nil {
-				_ = utils.ErrorJSON(w, errors.New("error generating tokens"), http.StatusUnauthorized)
+				_ = utils.ErrorJSON(
+					w,
+					errors.New("error generating tokens"),
+					http.StatusUnauthorized,
+				)
 				return
 			}
 
@@ -209,11 +213,8 @@ func (app *Application) UpdateMeme(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	meme.Title = payload.Title
-	meme.ReleaseDate = payload.ReleaseDate
-	meme.Description = payload.Description
-	meme.MPAARating = payload.MPAARating
-	meme.RunTime = payload.RunTime
+	meme.Lan = payload.Lan
+	meme.Lon = payload.Lon	
 	meme.UpdatedAt = time.Now()
 
 	err = app.DB.UpdateMeme(*meme)

@@ -14,7 +14,10 @@ import (
 
 const port = 8080
 
+var Version = "development"
+
 func main() {
+	fmt.Printf("Current version: %s\n", Version)
 	// set Application config
 	var app controllers.Application
 
@@ -22,7 +25,7 @@ func main() {
 	flag.StringVar(
 		&app.DSN,
 		"dsn",
-		"host=localhost port=5432 user=esusu password=esusu dbname=postgres sslmode=disable timezone=UTC connect_timeout=5",
+		"host=localhost port=54322 user=esusu password=esusu dbname=esusu sslmode=disable timezone=UTC connect_timeout=5",
 		"Postgres connection string",
 	)
 	flag.StringVar(&app.JWTSecret, "jwt-secret", "verysecret", "signing secret")
